@@ -2,14 +2,16 @@ package engine
 
 import (
     "fmt"
+    "os"
     "os/exec"
+    "strings"
 )
 
 type AsciidoctorOpts struct {
-    files []string
+    files []*os.File
     backend string
     doctype string
-    outFile string
+    outFile *os.File
     noHeaderFooter bool
     sectionNumbers bool
     attributes map[string]string
@@ -21,7 +23,7 @@ func Opts() *AsciidoctorOpts {
     return new(AsciidoctorOpts)
 }
 
-func Invoke(opts *AsciidoctorOpts) (err error) {
+func Invoke(opts *AsciidoctorOpts) (out []byte, err error) {
     command := make([]string, 30)
     
     if opts.backend != "" {
@@ -32,8 +34,8 @@ func Invoke(opts *AsciidoctorOpts) (err error) {
         command = append(command, "-d", opts.doctype)
     }
     
-    if opts.outFile != "" {
-        command = append(command, "-o", opts.outFile)
+    if opts.outFile != nil && opts.outFile.Name() != "" {
+        command = append(command, "-o", opts.outFile.Name())
     }
     
     if opts.noHeaderFooter  {
@@ -51,11 +53,16 @@ func Invoke(opts *AsciidoctorOpts) (err error) {
     if opts.destinationDir != "" {
         command = append(command, "-D", opts.destinationDir)
     }
-    fmt.Println("Executing command, %v", command)
-    out, err := exec.Command("asciidoctor", "--help").Output()
+    
+    if opts.files != nil { 
+        for _,file := range opts.files {
+            command = append(command, file.Name())
+        }
+    }
+    out, err = exec.Command("asciidoctor", strings.TrimSpace(strings.Join(command, " "))).CombinedOutput()
     if err != nil {
-        return err
+        return out, err
     }
     fmt.Printf("%s", out)
-    return nil
+    return out, nil
 }
