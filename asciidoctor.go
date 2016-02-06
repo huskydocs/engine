@@ -4,7 +4,7 @@ import (
     "fmt"
     "os"
     "os/exec"
-    "strings"
+//    "strings"
 )
 
 type AsciidoctorOpts struct {
@@ -24,7 +24,7 @@ func Opts() *AsciidoctorOpts {
 }
 
 func Invoke(opts *AsciidoctorOpts) (out []byte, err error) {
-    command := make([]string, 30)
+    command := make([]string, 0)
     
     if opts.backend != "" {
         command = append(command, "-b", opts.backend)
@@ -59,7 +59,8 @@ func Invoke(opts *AsciidoctorOpts) (out []byte, err error) {
             command = append(command, file.Name())
         }
     }
-    out, err = exec.Command("asciidoctor", strings.TrimSpace(strings.Join(command, " "))).CombinedOutput()
+    fmt.Printf("Executing command %v \n", command);
+    out, err = exec.Command("asciidoctor", command...).CombinedOutput()
     if err != nil {
         return out, err
     }
