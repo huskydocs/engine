@@ -4,6 +4,7 @@ import (
     "fmt"
     "os"
     "io/ioutil"
+    "path/filepath"
 )
 
 type Storage interface {
@@ -36,7 +37,7 @@ func (fs FilesystemStorage) Init() {
 }
 
 func (fs FilesystemStorage) CreateProject(projectId string) (string, error) {
-    project := fs.storageHome + projectId + "/"
+    project := filepath.Join(fs.storageHome, projectId)
     err := os.Mkdir(project, 0700)
     if err == nil || os.IsExist(err) {
        fmt.Printf("Created Huskydocs project at %s\n", project)
@@ -46,7 +47,7 @@ func (fs FilesystemStorage) CreateProject(projectId string) (string, error) {
 }
 
 func (fs FilesystemStorage) Documents(projectId string) ([]os.FileInfo, error) {
-    files, error := ioutil.ReadDir(fs.storageHome + projectId)
+    files, error := ioutil.ReadDir(filepath.Join(fs.storageHome, projectId))
     if (error != nil) {
         return nil, error
     }
@@ -55,7 +56,7 @@ func (fs FilesystemStorage) Documents(projectId string) ([]os.FileInfo, error) {
 }
 
 func (fs FilesystemStorage) Document(projectId, documentId string) ([]byte, error) {
-    content, error := ioutil.ReadFile(fs.storageHome + projectId + "/" + documentId)
+    content, error := ioutil.ReadFile(filepath.Join(fs.storageHome, projectId, documentId))
     if (error != nil) {
         return nil, error
     }
@@ -64,16 +65,16 @@ func (fs FilesystemStorage) Document(projectId, documentId string) ([]byte, erro
 }
 
 func (fs FilesystemStorage) CreateDocument(projectId, documentId string, content []byte) error {
-    err := ioutil.WriteFile(fs.storageHome + projectId + "/" + documentId, content, 0644)
+    err := ioutil.WriteFile(filepath.Join(fs.storageHome, projectId, documentId), content, 0644)
     return err
 }
 
 func (fs FilesystemStorage) UpdateDocument(projectId, documentId string, content []byte) error {
-    error := ioutil.WriteFile(fs.storageHome + projectId + "/" + documentId, content, 0600)
+    error := ioutil.WriteFile(filepath.Join(fs.storageHome, projectId, documentId), content, 0600)
     return error
 }
 
 func (fs FilesystemStorage) DeleteDocument(projectId, documentId string) error {
-    error := os.Remove(fs.storageHome + projectId + "/" + documentId)
+    error := os.Remove(filepath.Join(fs.storageHome, projectId, documentId))
     return error
 }

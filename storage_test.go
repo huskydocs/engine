@@ -3,6 +3,7 @@ package engine
 import (
     "testing"
     "os"
+    "path/filepath"
 )
 
 func TestDocumentOperations(t *testing.T) {
@@ -63,7 +64,7 @@ func TestDocumentOperations(t *testing.T) {
 
 func initStorage(t *testing.T) *FilesystemStorage {
     tempDir := os.TempDir()
-    storageHome := tempDir + ".huskydocs/"
+    storageHome := filepath.Join(tempDir, ".huskydocs")
 
     fsStorage := &FilesystemStorage{storageHome}
     fsStorage.Init()
