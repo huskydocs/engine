@@ -39,3 +39,42 @@ func (persistence Persistence) Init() (*Persistence, error) {
     fmt.Println("Connected to mongo")
     return &Persistence{session}, nil
 }
+
+func (persistence Persistence) CreateSubject(subject *Subject) (error) {
+    subject.id = bson.NewObjectId()
+    c := persistence.session.DB("huskydocs").C("subject")
+    err := c.Insert(subject)
+    return err
+}
+
+func (persistence Persistence) DeleteSubject(subject *Subject) (error) {
+    c := persistence.session.DB("huskydocs").C("subject")
+    err := c.Remove(subject)
+    return err
+}
+
+func (persistence Persistence) CreateProject(project *Project) (error) {
+    project.id = bson.NewObjectId()
+    c := persistence.session.DB("huskydocs").C("project")
+    err := c.Insert(project)
+    return err
+}
+
+func (persistence Persistence) DeleteProject(project *Project) (error) {
+    c := persistence.session.DB("huskydocs").C("project")
+    err := c.Remove(project)
+    return err
+}
+
+func (persistence Persistence) CreateDocument(document *Document) (error) {
+    document.id = bson.NewObjectId()
+    c := persistence.session.DB("huskydocs").C("document")
+    err := c.Insert(document)
+    return err
+}
+
+func (persistence Persistence) DeleteDocument(document *Document) (error) {
+    c := persistence.session.DB("huskydocs").C("document")
+    err := c.Remove(document)
+    return err
+}
