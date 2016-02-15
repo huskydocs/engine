@@ -7,22 +7,21 @@ import (
 )
 
 type Subject struct {
-	id       bson.ObjectId `bson:"_id,omitempty"`
+	Id       bson.ObjectId `bson:"_id,omitempty"`
 	Username string
 	Email    string
 }
 
 type Project struct {
-	id          bson.ObjectId `bson:"_id,omitempty"`
-	Subject     Subject       `bson:",inline"`
-	OwnerId     string
+	Id          bson.ObjectId `bson:"_id,omitempty"`
+	Owner       mgo.DBRef
 	Name        string
 	Description string
 }
 
 type Document struct {
-	id      bson.ObjectId `bson:"_id,omitempty"`
-	Project Project       `bson:",inline"`
+	Id      bson.ObjectId `bson:"_id,omitempty"`
+	Project mgo.DBRef
 	Path    string
 }
 
@@ -41,10 +40,17 @@ func Init() *PersistenceSession {
 }
 
 func (persistence PersistenceSession) CreateSubject(subject *Subject) error {
-	subject.id = bson.NewObjectId()
+	subject.Id = bson.NewObjectId()
 	c := persistence.session.DB("huskydocs").C("subject")
 	err := c.Insert(subject)
 	return err
+}
+
+func (persistence PersistenceSession) Subject(username string) (Subject, error) {
+	c := persistence.session.DB("huskydocs").C("subject")
+	var subject Subject
+	err := c.Find(bson.M{"username": username}).One(&subject)
+	return subject, err
 }
 
 func (persistence PersistenceSession) DeleteSubject(subject *Subject) error {
@@ -53,15 +59,15 @@ func (persistence PersistenceSession) DeleteSubject(subject *Subject) error {
 	return err
 }
 
-func (persistence PersistenceSession) Projects(subject *Subject) ([]Project, error) {
+func (persistence PersistenceSession) Projects(owner *Subject) ([]Project, error) {
 	c := persistence.session.DB("huskydocs").C("project")
 	var results []Project
-	err := c.Find(bson.M{"subject": subject}).All(&results)
+	err := c.Find(bson.M{"owner": owner}).All(&results)
 	return results, err
 }
 
 func (persistence PersistenceSession) CreateProject(project *Project) error {
-	project.id = bson.NewObjectId()
+	project.Id = bson.NewObjectId()
 	c := persistence.session.DB("huskydocs").C("project")
 	err := c.Insert(project)
 	return err
@@ -81,7 +87,7 @@ func (persistence PersistenceSession) Documents(project *Project) ([]Document, e
 }
 
 func (persistence PersistenceSession) CreateDocument(document *Document) error {
-	document.id = bson.NewObjectId()
+	document.Id = bson.NewObjectId()
 	c := persistence.session.DB("huskydocs").C("document")
 	err := c.Insert(document)
 	return err
