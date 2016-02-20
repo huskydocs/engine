@@ -55,14 +55,23 @@ func (persistence PersistenceSession) Subject(username string) (Subject, error) 
 
 func (persistence PersistenceSession) DeleteSubject(subject *Subject) error {
 	c := persistence.session.DB("huskydocs").C("subject")
-	err := c.Remove(subject)
+	err := c.RemoveId(subject.Id)
 	return err
+}
+
+func (persistence PersistenceSession) Project(owner *Subject, project string) (Project, error) {
+	c := persistence.session.DB("huskydocs").C("project")
+	ownerRef := mgo.DBRef{Collection: "subject", Id: owner.Id}
+	var result Project
+	err := c.Find(bson.M{"owner": ownerRef, "name": project}).One(result)
+	return result, err
 }
 
 func (persistence PersistenceSession) Projects(owner *Subject) ([]Project, error) {
 	c := persistence.session.DB("huskydocs").C("project")
+	ownerRef := mgo.DBRef{Collection: "subject", Id: owner.Id}
 	var results []Project
-	err := c.Find(bson.M{"owner": owner}).All(&results)
+	err := c.Find(bson.M{"owner": ownerRef}).All(&results)
 	return results, err
 }
 
@@ -75,14 +84,15 @@ func (persistence PersistenceSession) CreateProject(project *Project) error {
 
 func (persistence PersistenceSession) DeleteProject(project *Project) error {
 	c := persistence.session.DB("huskydocs").C("project")
-	err := c.Remove(project)
+	err := c.RemoveId(project.Id)
 	return err
 }
 
 func (persistence PersistenceSession) Documents(project *Project) ([]Document, error) {
 	c := persistence.session.DB("huskydocs").C("document")
+	projectRef := mgo.DBRef{Collection: "project", Id: project.Id}
 	var results []Document
-	err := c.Find(bson.M{"project": project}).All(&results)
+	err := c.Find(bson.M{"project": projectRef}).All(&results)
 	return results, err
 }
 
@@ -95,6 +105,6 @@ func (persistence PersistenceSession) CreateDocument(document *Document) error {
 
 func (persistence PersistenceSession) DeleteDocument(document *Document) error {
 	c := persistence.session.DB("huskydocs").C("document")
-	err := c.Remove(document)
+	err := c.RemoveId(document.Id)
 	return err
 }
