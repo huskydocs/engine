@@ -55,7 +55,20 @@ func (persistence PersistenceSession) Subject(username string) (Subject, error) 
 
 func (persistence PersistenceSession) DeleteSubject(subject *Subject) error {
 	c := persistence.session.DB("huskydocs").C("subject")
-	err := c.RemoveId(subject.Id)
+	projects, err := persistence.Projects(subject)
+
+	if err != nil {
+		return err
+	}
+
+	for i := range projects {
+		var project = projects[i]
+		err = persistence.DeleteProject(&project)
+		if err != nil {
+			return err
+		}
+	}
+	err = c.RemoveId(subject.Id)
 	return err
 }
 
@@ -84,7 +97,18 @@ func (persistence PersistenceSession) CreateProject(project *Project) error {
 
 func (persistence PersistenceSession) DeleteProject(project *Project) error {
 	c := persistence.session.DB("huskydocs").C("project")
-	err := c.RemoveId(project.Id)
+	documents, err := persistence.Documents(project)
+	if err != nil {
+		return err
+	}
+
+	for j := range documents {
+		err = persistence.DeleteDocument(&documents[j])
+		if err != nil {
+			return err
+		}
+	}
+	err = c.RemoveId(project.Id)
 	return err
 }
 
